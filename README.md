@@ -17,10 +17,10 @@ rather than a binary format reprenstation of the markup (BAML/XBF). This enables
 XamlX has some really cool debugging features, the below images are curtosy of [a tweet from Jumar Macato](https://twitter.com/jumarmacato/status/1182645002180026369) (Twitter: @jumarmacatoto)
 
 #### Xaml Breakpoints!
-![](docs\xaml-breakpoint.png)
+![](docs/xaml-breakpoint.png)
 
 #### Inline XamlParse Exceptions!
-![](docs\xaml-exception.jfif)
+![](docs/xaml-exception.jfif)
 
 ## Getting Started
 
