@@ -1,38 +1,85 @@
-# New Repo Project
+# XamlX - WinUI
 
-The new-repo project is a default template for .NET Foundation projects. It's also probably a fine start for other .NET projects (have at it, but change the license). It contains the correct license, a decent README, and initial project structure (including a standard .gitignore for the Visual Studio family of products).
+This repo contains the source code for the 2020 Hackathon project to bring the [XamlX](https://github.com/kekekeks/XamlX) compiler to WinUI3.
 
-You can learn more about the project from the project [Documentation](Documentation).
+## What is XamlX?
 
-## Using New Repo
+Taken from the XamlX (linked above) readme, XamlX is a:
 
-You can simply `git clone` this project to get started. It is recommended that you don't preserve history of the project (it isn't generally meaningful) for your repo, but make a copy and `git init` your project from source.
+> General purpose pluggable XAML compiler with no runtime dependencies. Currently being used by Avalonia project as the XAML engine. 
+The compiler isn't tied to Avalonia in any way, shape or form and can be used for any purposes by configuring XamlLanguageTypeMappings to match the needs of your particular framework. Further customization can be done by AST manipulations, see examples of those in Avaloni repository.
 
-Consult [CHECKLIST.md] for helpful suggestions on preparing your repo to go public.
+One of the key differences between XamlX and the way that WPF and WinUI have serialized XAML files, is that they generate Intermediate Language (IL) instructions,
+rather than a binary format reprenstation of the markup (BAML/XBF). This enables support for any .NET language, and doesn't require individual work for C#, VB, or F#.
 
-## Building
+### Debugging Features of XamlX
 
-You don't "build" New Repo, however, this will be meaningful for many other projects.
+XamlX has some really cool debugging features, the below images are curtosy of [a tweet from Jumar Macato](https://twitter.com/jumarmacato/status/1182645002180026369) (Twitter: @jumarmacatoto)
 
-## Contributing
+#### Xaml Breakpoints!
+![](docs\xaml-breakpoint.png)
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for information on contributing to this project.
+#### Inline XamlParse Exceptions!
+![](docs\xaml-exception.jfif)
 
-This project has adopted the code of conduct defined by the [Contributor Covenant](http://contributor-covenant.org/) 
-to clarify expected behavior in our community. For more information, see the [.NET Foundation Code of Conduct](http://www.dotnetfoundation.org/code-of-conduct).
+## Getting Started
+
+How to debug the current Avalonia Compiler:
+- Debug [Unit tests in Avalonia.Markup.Xaml](https://github.com/AvaloniaUI/Avalonia/blob/master/tests/Avalonia.Markup.Xaml.UnitTests/Xaml/XamlIlTests.cs)
+
+## Goals
+
+- Enable compilation of WinUI3 applications using a XamlX based compiler, similar to the [Avalonia Compiler](https://github.com/AvaloniaUI/Avalonia/blob/master/src/Markup/Avalonia.Markup.Xaml.Loader/CompilerExtensions/AvaloniaXamlIlCompiler.cs)
+- Add support for emitting C++ backend
+- Ensure support for WinUI Specific language features:
+   - (P0) `x:Bind`
+   - (P0) `x:Load`
+   - (P1) `x:Phase`
+- Xaml Direct transforms and a special emitter for method calls?
+- Add support for new collection syntax being added:
+
+```xml
+<Grid ColumnDefinitions="*,*.Auto"/>
+```
+
+## Project Plan
+
+Parallelizable work:
+- C++/WinRT backend
+- Adding support for WinUI
+- xaml direct transforms
+- standalone exe
+
+### Standalone exe
+Make a standalone exe for easy testing and inner loop.
+
+### C++ Backend
+- Emitters all the basic logic for the nodes
+- Follow pattern for `IL` folder here: https://github.com/kekekeks/XamlX/tree/master/src/XamlX
+- Can use Cecil which has support .winmd for local types
+    - Property on CecilReader called `ApplyWindowsRuntimeProjections` - set this to `false`.
+
+Emitters are templated on two types: 
+
+- **Result Type** - valid vs invalid. Emitter returns invalid result if it doesn't emit anything. Chain of responsiblity, so if one emitter can't do it, moves on to the next one.
+- **Base emitter** - as close to the primitive instructions as needed.
+
+Node Emitter's call methods on base emitter to emit the node. Base emitter is passed to the node.
+
+### Xaml Direct transform
+Assigned to: Jeremy
+
+### WinUI Support
+- Copying Avalonia compiler
+- Adding WinUI specific language features
 
 ## License
 
 This project is licensed with the [MIT license](LICENSE).
 
-## .NET Foundation
-
-New Repo is a [.NET Foundation project](https://dotnetfoundation.org/projects).
-
 ## Related Projects
 
 You should take a look at these related projects:
 
-- [.NET Core](https://github.com/dotnet/core)
-- [ASP.NET](https://github.com/aspnet)
-- [Mono](https://github.com/mono)
+- [XamlX](https://github.com/kekekeks/XamlX)
+- [Avalonia](https://github.com/AvaloniaUI/Avalonia)
