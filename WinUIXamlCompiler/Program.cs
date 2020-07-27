@@ -80,10 +80,10 @@ namespace WinUIXamlCompiler
             var compilerConfig = new TransformerConfiguration(typeSystem,
                 typeSystem.TargetAssembly,
                 xamlLanguage,
-                XamlXmlnsMappings.Resolve(typeSystem, xamlLanguage));
+                GetXmlnsNamespacesIL(typeSystem, xamlLanguage));
 
 
-            var contextDef = new TypeDefinition("CompiledAvaloniaXaml", "XamlIlContext",
+            var contextDef = new TypeDefinition("CompiledWinUIXaml", "XamlIlContext",
                 TypeAttributes.Class, asm.MainModule.TypeSystem.Object);
             asm.MainModule.Types.Add(contextDef);
 
@@ -97,6 +97,8 @@ namespace WinUIXamlCompiler
             var builder = typeSystem.CreateTypeBuilder(typeDef);
 
             CompileXaml(xamlFiles, typeSystem, compilerConfig, contextClass, compiler, builder);
+
+            Directory.CreateDirectory(Path.GetDirectoryName(outputAssembly));
 
             asm.Write(outputAssembly, new WriterParameters
             {
@@ -115,7 +117,7 @@ namespace WinUIXamlCompiler
                 GetXmlnsNamespacesCpp(typeSystem, xamlLanguage));
 
 
-            var contextDef = new TypeDefinition("CompiledAvaloniaXaml", "XamlIlContext",
+            var contextDef = new TypeDefinition("CompiledWinUIXaml", "XamlIlContext",
                 TypeAttributes.Class, asm.MainModule.TypeSystem.Object);
             asm.MainModule.Types.Add(contextDef);
 
@@ -142,28 +144,28 @@ namespace WinUIXamlCompiler
             var winUIAssembly = typeSystem.FindAssembly("Microsoft.WinUI");
             mappings.Namespaces.Add("http://schemas.microsoft.com/winfx/2006/xaml/presentation", new List<(IXamlAssembly asm, string ns)>
             {
-                (winUIAssembly, "Windows.UI"),
-                (winUIAssembly, "Windows.UI.Xaml"),
-                (winUIAssembly, "Windows.UI.Xaml.Automation"),
-                (winUIAssembly, "Windows.UI.Xaml.Automation.Peers"),
-                (winUIAssembly, "Windows.UI.Xaml.Automation.Provider"),
-                (winUIAssembly, "Windows.UI.Xaml.Automation.Text"),
-                (winUIAssembly, "Windows.UI.Xaml.Controls"),
-                (winUIAssembly, "Windows.UI.Xaml.Controls.Primitives"),
-                (winUIAssembly, "Windows.UI.Xaml.Data"),
-                (winUIAssembly, "Windows.UI.Xaml.Documents"),
-                (winUIAssembly, "Windows.UI.Xaml.Input"),
-                (winUIAssembly, "Windows.UI.Xaml.Interop"),
-                (winUIAssembly, "Windows.UI.Xaml.Markup"),
-                (winUIAssembly, "Windows.UI.Xaml.Media"),
-                (winUIAssembly, "Windows.UI.Xaml.Media.Animation"),
-                (winUIAssembly, "Windows.UI.Xaml.Media.Imaging"),
-                (winUIAssembly, "Windows.UI.Xaml.Media.Media3D"),
-                (winUIAssembly, "Windows.UI.Xaml.Navigation"),
-                (winUIAssembly, "Windows.UI.Xaml.Resources"),
-                (winUIAssembly, "Windows.UI.Xaml.Shapes"),
-                (winUIAssembly, "Windows.UI.Xaml.Threading"),
-                (winUIAssembly, "Windows.UI.Text"),
+                (winUIAssembly, "Microsoft.UI"),
+                (winUIAssembly, "Microsoft.UI.Xaml"),
+                (winUIAssembly, "Microsoft.UI.Xaml.Automation"),
+                (winUIAssembly, "Microsoft.UI.Xaml.Automation.Peers"),
+                (winUIAssembly, "Microsoft.UI.Xaml.Automation.Provider"),
+                (winUIAssembly, "Microsoft.UI.Xaml.Automation.Text"),
+                (winUIAssembly, "Microsoft.UI.Xaml.Controls"),
+                (winUIAssembly, "Microsoft.UI.Xaml.Controls.Primitives"),
+                (winUIAssembly, "Microsoft.UI.Xaml.Data"),
+                (winUIAssembly, "Microsoft.UI.Xaml.Documents"),
+                (winUIAssembly, "Microsoft.UI.Xaml.Input"),
+                (winUIAssembly, "Microsoft.UI.Xaml.Interop"),
+                (winUIAssembly, "Microsoft.UI.Xaml.Markup"),
+                (winUIAssembly, "Microsoft.UI.Xaml.Media"),
+                (winUIAssembly, "Microsoft.UI.Xaml.Media.Animation"),
+                (winUIAssembly, "Microsoft.UI.Xaml.Media.Imaging"),
+                (winUIAssembly, "Microsoft.UI.Xaml.Media.Media3D"),
+                (winUIAssembly, "Microsoft.UI.Xaml.Navigation"),
+                (winUIAssembly, "Microsoft.UI.Xaml.Resources"),
+                (winUIAssembly, "Microsoft.UI.Xaml.Shapes"),
+                (winUIAssembly, "Microsoft.UI.Xaml.Threading"),
+                (winUIAssembly, "Microsoft.UI.Text"),
             });
             return mappings;
         }
@@ -208,8 +210,7 @@ namespace WinUIXamlCompiler
                     compiler.DefinePopulateMethod(builder, parsed, populateName,
                         false),
                     buildName == null ? null : compiler.DefineBuildMethod(builder, parsed, buildName, true),
-                    builder.DefineSubType(compilerConfig.WellKnownTypes.Object, "NamespaceInfo_" + Path.GetFileNameWithoutExtension(xamlFile),
-                        true),
+                    null,
                     (closureName, closureBaseType) =>
                         builder.DefineSubType(closureBaseType, closureName, false),
                     xamlFile, res

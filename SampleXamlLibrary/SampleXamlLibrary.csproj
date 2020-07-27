@@ -8,7 +8,8 @@
 
   <Target Name="CreateRspFileForCompiler" BeforeTargets="CopyFilesToOutputDirectory">
     <ItemGroup>
-      <RspLine Include="--xaml:UserControl.xaml" />
+      <XamlFile Include="**/*.xaml" />
+      <RspLine Include="@(XamlFile->'--xaml:%(Identity)')" />
       <RspLine Include="@(ReferencePath->'--reference:%(Identity)')" />
       <RspLine Include="il" />
       <RspLine Include="-i:$(OutputPath)$(AssemblyName).dll" />

@@ -12,7 +12,7 @@ namespace WinUIXamlCompiler
         {
             var langaugeMappings = new XamlLanguageTypeMappings(typeSystem, useDefault: false)
             {
-                ServiceProvider = typeSystem.GetType("Microsoft.UI.Xaml.Markup.IXamlServiceProvider"),
+                ServiceProvider = typeSystem.GetType("Microsoft.UI.Xaml.IXamlServiceProvider"),
                 ContentAttributes = 
                 {
                     typeSystem.GetType("Microsoft.UI.Xaml.Markup.ContentPropertyAttribute"),
