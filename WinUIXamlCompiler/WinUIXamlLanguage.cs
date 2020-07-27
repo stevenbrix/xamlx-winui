@@ -10,7 +10,19 @@ namespace WinUIXamlCompiler
         internal static (XamlLanguageTypeMappings, XamlLanguageEmitMappings<TBackendEmitter, TEmitResult>) Configure<TBackendEmitter, TEmitResult>(CecilTypeSystem typeSystem)
         where TEmitResult : IXamlEmitResult
         {
-            throw new NotImplementedException();
+            var langaugeMappings = new XamlLanguageTypeMappings(typeSystem, useDefault: false)
+            {
+                ServiceProvider = typeSystem.GetType("Microsoft.UI.Xaml.Markup.IXamlServiceProvider"),
+                ContentAttributes = 
+                {
+                    typeSystem.GetType("Microsoft.UI.Xaml.Markup.ContentPropertyAttribute"),
+                    typeSystem.GetType("Windows.UI.Xaml.Markup.ContentPropertyAttribute"),
+                }
+            };
+
+            var emitMappings = new XamlLanguageEmitMappings<TBackendEmitter, TEmitResult>();
+
+            return (langaugeMappings, emitMappings);
         }
     }
 }
