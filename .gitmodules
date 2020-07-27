@@ -1,3 +1,4 @@
 [submodule "XamlX"]
 	path = XamlX
-	url = https://github.com/kekekeks/XamlX
+	url = https://github.com/jkoritzinsky/XamlX
+	branch = WinUI
