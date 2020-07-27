@@ -1,5 +1,6 @@
 ﻿using Mono.Cecil;
 using System;
+using System.Collections.Generic;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
@@ -106,7 +107,7 @@ namespace WinUIXamlCompiler
             var compilerConfig = new TransformerConfiguration(typeSystem,
                 typeSystem.TargetAssembly,
                 xamlLanguage,
-                XamlXmlnsMappings.Resolve(typeSystem, xamlLanguage));
+                GetXmlnsNamespacesCpp(typeSystem, xamlLanguage));
 
 
             var contextDef = new TypeDefinition("CompiledAvaloniaXaml", "XamlIlContext",
@@ -118,6 +119,48 @@ namespace WinUIXamlCompiler
 
             var compiler = new WinUIXamlILCompiler(compilerConfig, emitConfig) { EnableIlVerification = true };
             CompileXaml(xamlFiles, typeSystem, compilerConfig, contextClass, compiler, null /* provider a type builder for C++ */);
+        }
+
+        private static XamlXmlnsMappings GetXmlnsNamespacesCpp(CecilTypeSystem typeSystem, XamlLanguageTypeMappings xamlLanguage)
+        {
+            var mappings = XamlXmlnsMappings.Resolve(typeSystem, xamlLanguage);
+            mappings.Namespaces.Add("http://schemas.microsoft.com/winfx/2006/xaml/presentation", new List<(IXamlAssembly asm, string ns)>
+            {
+                // TODO: default namespace mappings.
+            });
+            return mappings;
+        }
+
+        private static XamlXmlnsMappings GetXmlnsNamespacesIL(CecilTypeSystem typeSystem, XamlLanguageTypeMappings xamlLanguage)
+        {
+            var mappings = XamlXmlnsMappings.Resolve(typeSystem, xamlLanguage);
+            var winUIAssembly = typeSystem.FindAssembly("Microsoft.WinUI");
+            mappings.Namespaces.Add("http://schemas.microsoft.com/winfx/2006/xaml/presentation", new List<(IXamlAssembly asm, string ns)>
+            {
+                (winUIAssembly, "Windows.UI"),
+                (winUIAssembly, "Windows.UI.Xaml"),
+                (winUIAssembly, "Windows.UI.Xaml.Automation"),
+                (winUIAssembly, "Windows.UI.Xaml.Automation.Peers"),
+                (winUIAssembly, "Windows.UI.Xaml.Automation.Provider"),
+                (winUIAssembly, "Windows.UI.Xaml.Automation.Text"),
+                (winUIAssembly, "Windows.UI.Xaml.Controls"),
+                (winUIAssembly, "Windows.UI.Xaml.Controls.Primitives"),
+                (winUIAssembly, "Windows.UI.Xaml.Data"),
+                (winUIAssembly, "Windows.UI.Xaml.Documents"),
+                (winUIAssembly, "Windows.UI.Xaml.Input"),
+                (winUIAssembly, "Windows.UI.Xaml.Interop"),
+                (winUIAssembly, "Windows.UI.Xaml.Markup"),
+                (winUIAssembly, "Windows.UI.Xaml.Media"),
+                (winUIAssembly, "Windows.UI.Xaml.Media.Animation"),
+                (winUIAssembly, "Windows.UI.Xaml.Media.Imaging"),
+                (winUIAssembly, "Windows.UI.Xaml.Media.Media3D"),
+                (winUIAssembly, "Windows.UI.Xaml.Navigation"),
+                (winUIAssembly, "Windows.UI.Xaml.Resources"),
+                (winUIAssembly, "Windows.UI.Xaml.Shapes"),
+                (winUIAssembly, "Windows.UI.Xaml.Threading"),
+                (winUIAssembly, "Windows.UI.Text"),
+            });
+            return mappings;
         }
 
         private static void CompileXaml<TBackendEmitter, TEmitResult>(string[] xamlFiles, CecilTypeSystem typeSystem, TransformerConfiguration compilerConfig, IXamlType contextClass, XamlImperativeCompiler<TBackendEmitter, TEmitResult> compiler, IXamlTypeBuilder<TBackendEmitter> builder)
