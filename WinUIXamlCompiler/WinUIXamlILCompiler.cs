@@ -17,6 +17,7 @@ namespace WinUIXamlCompiler
     {
         public WinUIXamlILCompiler(TransformerConfiguration configuration, XamlLanguageEmitMappings<IXamlILEmitter, XamlILNodeEmitResult> emitMappings) : base(configuration, emitMappings, true)
         {
+            this.AddWinUIPhases();
         }
     }
 }
