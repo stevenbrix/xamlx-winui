@@ -23,27 +23,32 @@ namespace WinUIXamlCompiler
         {
             var cppCommand = new Command("cpp", "Compile Xaml to C++/WinRT")
             {
-                new Argument<DirectoryInfo>("-o", "The output directory for the generated C++ code.")
+                new Option<DirectoryInfo>("-o", "The output directory for the generated C++ code.") { IsRequired = true }
             };
 
             var ilCommand = new Command("il", "Compile Xaml to IL and embed in a .NET assembly")
             {
-                new Argument<FileInfo>("-i", "The input .NET assembly"),
-                new Argument<FileInfo>("-o", "The ouput path for the updated .NET assembly.")
+                new Option<string>("-i", "The input .NET assembly") { IsRequired = true },
+                new Option<string>("-o", "The ouput path for the updated .NET assembly.") { IsRequired = true }
             };
 
-            var xamlFilesArgument = new Argument<string[]>(
+            var xamlFilesArgument = new Option<string[]>(
                 "--xaml",
-                "The input xaml files.");
+                "The input xaml files.")
+                {
+                    IsRequired = true
+                };
 
             xamlFilesArgument.AddAlias("-x");
 
-            var referencesArgument = new Argument<string[]>(
+            var referencesArgument = new Option<string[]>(
                 "--reference",
-                "The reference metadata files (.NET assemblies or WinMD files).");
+                "The reference metadata files (.NET assemblies or WinMD files).")
+                {
+                    IsRequired = true
+                };
             referencesArgument.AddAlias("-r");
 
-            // Create a root command with some options
             var rootCommand = new RootCommand
             {
                 cppCommand,
