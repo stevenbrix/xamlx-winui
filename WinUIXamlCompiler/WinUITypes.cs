@@ -13,6 +13,9 @@ namespace WinUIXamlCompiler
         public IXamlType XamlTypeIndex { get; }
         public IXamlType XamlPropertyIndex { get; }
         public IXamlType XamlEventIndex { get; }
+        public IXamlType BindingBase { get; }
+        public IXamlType DependencyProperty { get; }
+        public IXamlType DependencyObject { get; }
 
         public WellKnownWinUITypes(TransformerConfiguration cfg)
         {
@@ -22,6 +25,8 @@ namespace WinUIXamlCompiler
             XamlTypeIndex = cfg.TypeSystem.FindType("Microsoft.UI.Xaml.Core.Direct.XamlTypeIndex");
             XamlPropertyIndex = cfg.TypeSystem.FindType("Microsoft.UI.Xaml.Core.Direct.XamlPropertyIndex");
             XamlEventIndex = cfg.TypeSystem.FindType("Microsoft.UI.Xaml.Core.Direct.XamlEventIndex");
+            BindingBase = cfg.TypeSystem.FindType("Microsoft.UI.Xaml.Data.BindingBase");
+            DependencyProperty = cfg.TypeSystem.FindType("Microsoft.UI.Xaml.DependencyProperty");
         }
     }
 }

@@ -22,7 +22,13 @@ namespace WinUIXamlCompiler
             void InsertBefore<T>(params IXamlAstTransformer[] t)
                 => compiler.Transformers.InsertRange(compiler.Transformers.FindIndex(x => x is T), t);
 
-            InsertAfter<NewObjectTransformer>(new XamlDirectTransformer());
+            InsertAfter<ResolveContentPropertyTransformer>(
+                new XamlDirectPropertyResolver(),
+                new DependencyPropertyResolver());
+
+            InsertAfter<DeferredContentTransformer>(
+                new XamlDirectObjectCreationTransformer(),
+                new XamlDirectConversionSimplifier());
         }
 
         public static WellKnownWinUITypes GetWinUITypes(this AstTransformationContext ctx)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using WinUIXamlCompiler.Emitters.IL;
 using XamlX;
 using XamlX.Ast;
 using XamlX.Emit;
@@ -18,6 +19,11 @@ namespace WinUIXamlCompiler
         public WinUIXamlILCompiler(TransformerConfiguration configuration, XamlLanguageEmitMappings<IXamlILEmitter, XamlILNodeEmitResult> emitMappings) : base(configuration, emitMappings, true)
         {
             this.AddWinUIPhases();
+
+            Emitters.Add(new XamlDirectConversionEmitter());
+            Emitters.Add(new XamlDirectNewObjectEmitter());
+            Emitters.Add(new XamlDirectSetterEmitter());
+            Emitters.Add(new XamlDirectAdderSetterEmitter());
         }
     }
 }
