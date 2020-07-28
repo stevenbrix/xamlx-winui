@@ -66,4 +66,30 @@ namespace WinUIXamlCompiler.Ast
             Parameters = new [] { setterType };
         }
     }
+
+    class XamlDirectEventSetter : IXamlPropertySetter, IXamlDirectSetter
+    {
+        public XamlDirectEventSetter(WellKnownWinUITypes winUITypes,
+            IXamlType propertyType,
+            IXamlType targetType,
+            IXamlField eventIndex)
+        {
+            Parameters = new[] { propertyType };
+            WinUITypes = winUITypes;
+            TargetType = targetType;
+            EventIndex = eventIndex;
+        }
+
+        public WellKnownWinUITypes WinUITypes { get; }
+        public IXamlType TargetType { get; }
+        public IXamlField EventIndex { get; }
+        public PropertySetterBinderParameters BinderParameters { get; } = new PropertySetterBinderParameters();
+
+        public IReadOnlyList<IXamlType> Parameters { get; private set; }
+
+        public void ChangeEmitSetterType(IXamlType setterType)
+        {
+            Parameters = new [] { setterType };
+        }
+    }
 }

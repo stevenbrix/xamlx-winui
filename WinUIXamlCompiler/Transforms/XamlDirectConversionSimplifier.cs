@@ -23,7 +23,9 @@ namespace WinUIXamlCompiler.Transforms
                 {
                     IXamlDirectSetter directSetter = (IXamlDirectSetter)setter;
                     
-                    if (!directSetter.Parameters[0].IsValueType && directSetter.Parameters[0] != context.Configuration.WellKnownTypes.String)
+                    if (!(directSetter is XamlDirectEventSetter) &&
+                        !directSetter.Parameters[0].IsValueType &&
+                        directSetter.Parameters[0] != context.Configuration.WellKnownTypes.String)
                     {
                         directSetter.ChangeEmitSetterType(context.GetWinUITypes().IXamlDirectObject);
                     }

@@ -147,4 +147,38 @@ namespace WinUIXamlCompiler.Emitters.IL
             return false;
         }
     }
+    class XamlDirectEventSetterEmitter : IXamlPropertySetterEmitter<IXamlILEmitter>
+    {
+        public bool EmitCall(IXamlPropertySetter setter, IXamlILEmitter emitter)
+        {
+            if (setter is XamlDirectEventSetter xdirect)
+            {
+                var paramType = setter.Parameters[0];
+                var expectedParameters = new [] { xdirect.WinUITypes.IXamlDirectObject, xdirect.WinUITypes.XamlPropertyIndex, paramType};
+                
+                IXamlType xamlDirectType = xdirect.WinUITypes.XamlDirect;
+                var setterMethod = xamlDirectType.GetMethod(
+                    new FindMethodMethodSignature("AddEventHandler",
+                        emitter.TypeSystem.GetType("System.Void"),
+                        xdirect.WinUITypes.IXamlDirectObject,
+                        xdirect.WinUITypes.XamlEventIndex,
+                        emitter.TypeSystem.GetType("System.Object")));
+
+                using (var objLocal = emitter.LocalsPool.GetLocal(xdirect.WinUITypes.IXamlDirectObject))
+                using (var valLocal = emitter.LocalsPool.GetLocal(paramType))
+                {
+                    emitter
+                        .Stloc(valLocal.Local)
+                        .Stloc(objLocal.Local)
+                        .EmitCall(xamlDirectType.GetMethod(new FindMethodMethodSignature("GetDefault", xamlDirectType) { IsStatic = true }))
+                        .Ldloc(objLocal.Local)
+                        .Ldsfld(xdirect.EventIndex)
+                        .Ldloc(valLocal.Local)
+                        .EmitCall(setterMethod);
+                }
+                return true;
+            }
+            return false;
+        }
+    }
 }

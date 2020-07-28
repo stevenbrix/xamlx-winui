@@ -9,7 +9,7 @@
     <ContentControl>
         <Grid>
             <TextBlock Text="Hello world!" />
-            <Button Content="Click me!" />
+            <Button Content="Click me!" Click="Button_Click" />
         </Grid>
     </ContentControl>
 </UserControl>

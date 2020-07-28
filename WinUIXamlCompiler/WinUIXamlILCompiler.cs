@@ -24,6 +24,7 @@ namespace WinUIXamlCompiler
             Emitters.Add(new XamlDirectNewObjectEmitter());
             Emitters.Add(new XamlDirectSetterEmitter());
             Emitters.Add(new XamlDirectAdderSetterEmitter());
+            Emitters.Add(new XamlDirectEventSetterEmitter());
         }
     }
 }

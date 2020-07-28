@@ -26,7 +26,7 @@ namespace WinUIXamlCompiler.Transforms
                 }
 
                 IXamlType objType = newObj.Type.GetClrType();
-                if (objType.Namespace != "Microsoft.UI.Xaml.Controls" || objType.Assembly != context.GetWinUITypes().WinUIControlsAssembly)
+                if (objType.Assembly != context.GetWinUITypes().WinUIControlsAssembly)
                 {
                     // Only built-in controls have XamlDirect support.
                     // Remove the XamlDirect setters since XamlDirect isn't worth using once the object
