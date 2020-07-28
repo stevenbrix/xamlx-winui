@@ -19,23 +19,28 @@ namespace WinUIXamlCompiler.Transforms
             if (node is XamlPropertyAssignmentNode assign &&
                 assign.PossibleSetters[0] is IXamlDirectSetter)
             {
+                foreach (var setter in assign.PossibleSetters)
+                {
+                    IXamlDirectSetter directSetter = (IXamlDirectSetter)setter;
+                    
+                    if (!directSetter.Parameters[0].IsValueType && directSetter.Parameters[0] != context.Configuration.WellKnownTypes.String)
+                    {
+                        directSetter.ChangeEmitSetterType(context.GetWinUITypes().IXamlDirectObject);
+                    }
+                }
+
                 for (int i = 0; i < assign.Values.Count; i++)
                 {
                     if (assign.Values[i] is XamlObjectFromDirectObjectNode objFromDirect)
                     {
                         assign.Values[i] = objFromDirect.Value;
                     }
-                    else if (assign.Values[i] is XamlValueWithManipulationNode || assign.PossibleSetters[0] is XamlDirectAdderSetter)
+                    else if (assign.Values[i] is XamlValueWithManipulationNode || assign.PossibleSetters[0].Parameters[0] == context.GetWinUITypes().IXamlDirectObject)
                     {
                         assign.Values[i] = new XamlDirectObjectFromObjectNode(assign.Values[0], context.GetWinUITypes().IXamlDirectObject);
                     }
                 }
 
-                foreach (var setter in assign.PossibleSetters)
-                {
-                    IXamlDirectSetter directSetter = (IXamlDirectSetter)setter;
-                    directSetter.PrepareForEmit();
-                }
             }
             return node;
         }

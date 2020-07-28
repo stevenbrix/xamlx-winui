@@ -27,6 +27,17 @@ namespace WinUIXamlCompiler.Emitters.IL
                     .Castclass(objNode.Type.GetClrType());
                 return XamlILNodeEmitResult.Type(0, objNode.Type.GetClrType());
             }
+            else if (node is XamlDirectObjectFromObjectNode directObjNode)
+            {
+                IXamlType xamlDirectType = context.GetWinUITypes().XamlDirect;
+                codeGen
+                    .EmitCall(xamlDirectType.GetMethod(new FindMethodMethodSignature("GetDefault", xamlDirectType) { IsStatic = true }));
+                    
+                context.Emit(directObjNode.Value, codeGen, context.Configuration.WellKnownTypes.Object);
+                codeGen
+                    .EmitCall(xamlDirectType.GetMethod(new FindMethodMethodSignature("GetXamlDirectObject", context.GetWinUITypes().IXamlDirectObject, context.Configuration.WellKnownTypes.Object)));
+                return XamlILNodeEmitResult.Type(0, context.GetWinUITypes().IXamlDirectObject);
+            }
             return null;
         }
     }
@@ -89,7 +100,6 @@ namespace WinUIXamlCompiler.Emitters.IL
             if (setter is XamlDirectAdderSetter xdirect)
             {
                 var paramType = setter.Parameters[0];
-                var expectedParameters = new [] { xdirect.WinUITypes.IXamlDirectObject, xdirect.WinUITypes.XamlPropertyIndex, paramType};
                 
                 IXamlType xamlDirectType = xdirect.WinUITypes.XamlDirect;
                 var getCollectionMethod = xamlDirectType.GetMethod(
@@ -110,11 +120,26 @@ namespace WinUIXamlCompiler.Emitters.IL
                         .Stloc(valLocal.Local)
                         .Stloc(objLocal.Local)
                         .EmitCall(xamlDirectType.GetMethod(new FindMethodMethodSignature("GetDefault", xamlDirectType) { IsStatic = true }))
-                        .Dup()
+                        .Dup();
+
+                    emitter
                         .Ldloc(objLocal.Local)
                         .Ldsfld(xdirect.PropertyIndex)
-                        .EmitCall(getCollectionMethod)
-                        .Ldloc(valLocal.Local)
+                        .EmitCall(getCollectionMethod);
+
+                    if (paramType != xdirect.WinUITypes.IXamlDirectObject)
+                    {
+                        emitter
+                            .EmitCall(xamlDirectType.GetMethod(new FindMethodMethodSignature("GetDefault", xamlDirectType) { IsStatic = true }))
+                            .Ldloc(valLocal.Local)
+                            .EmitCall(xamlDirectType.FindMethod(m => m.Name == "GetXamlDirectObject"));
+                    }
+                    else
+                    {
+                        emitter.Ldloc(valLocal.Local);
+                    }
+
+                    emitter
                         .EmitCall(addToCollection);
                 }
                 return true;

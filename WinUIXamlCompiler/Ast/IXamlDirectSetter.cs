@@ -11,23 +11,19 @@ namespace WinUIXamlCompiler.Ast
 {
     interface IXamlDirectSetter : IXamlPropertySetter
     {
-        void PrepareForEmit();
+        void ChangeEmitSetterType(IXamlType newType);
     }
 
     class XamlDirectSetter : IXamlPropertySetter, IXamlDirectSetter
     {
-        private readonly IXamlType _stringType;
-
         public XamlDirectSetter(
             WellKnownWinUITypes winUITypes,
-            IXamlType stringType,
             IXamlType propertyType,
             IXamlType targetType,
             IXamlField propertyIndex)
         {
             Parameters = new[] { propertyType };
             WinUITypes = winUITypes;
-            this._stringType = stringType;
             TargetType = targetType;
             PropertyIndex = propertyIndex;
         }
@@ -39,18 +35,16 @@ namespace WinUIXamlCompiler.Ast
 
         public IReadOnlyList<IXamlType> Parameters { get; private set; }
 
-        public void PrepareForEmit()
+        public void ChangeEmitSetterType(IXamlType setterType)
         {
-            if (!Parameters[0].IsValueType && Parameters[0] != _stringType)
-            {
-                Parameters = new [] { WinUITypes.IXamlDirectObject };
-            }
+            Parameters = new [] { setterType };
         }
     }
 
     class XamlDirectAdderSetter : IXamlPropertySetter, IXamlDirectSetter
     {
-        public XamlDirectAdderSetter(WellKnownWinUITypes winUITypes, IXamlType propertyType,
+        public XamlDirectAdderSetter(WellKnownWinUITypes winUITypes,
+            IXamlType propertyType,
             IXamlType targetType,
             IXamlField propertyIndex)
         {
@@ -63,15 +57,13 @@ namespace WinUIXamlCompiler.Ast
         public WellKnownWinUITypes WinUITypes { get; }
         public IXamlType TargetType { get; }
         public IXamlField PropertyIndex { get; }
-        public PropertySetterBinderParameters BinderParameters { get; } = new PropertySetterBinderParameters();
+        public PropertySetterBinderParameters BinderParameters { get; } = new PropertySetterBinderParameters { AllowMultiple = true };
 
         public IReadOnlyList<IXamlType> Parameters { get; private set; }
 
-        public void PrepareForEmit()
+        public void ChangeEmitSetterType(IXamlType setterType)
         {
-            // For the emitter we update the parameter type to the actual type
-            // the value will be.
-            Parameters = new [] { WinUITypes.IXamlDirectObject };
+            Parameters = new [] { setterType };
         }
     }
 }

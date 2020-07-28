@@ -6,8 +6,10 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
-
-    <Grid>
-        <TextBlock Text="Hello world!" />
-    </Grid>
+    <ContentControl>
+        <Grid>
+            <TextBlock Text="Hello world!" />
+            <Button Content="Click me!" />
+        </Grid>
+    </ContentControl>
 </UserControl>

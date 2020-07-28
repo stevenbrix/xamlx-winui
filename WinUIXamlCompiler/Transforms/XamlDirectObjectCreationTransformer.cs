@@ -48,32 +48,8 @@ namespace WinUIXamlCompiler.Transforms
                 var xamlDirectAssignmentsNode = new XamlManipulationGroupNode(constructedObjNode);
                 var standardAssignmentsNode = new XamlManipulationGroupNode(constructedObjNode);
 
-                foreach (var manip in manipGrp.Children)
-                {
-                    if (manip is XamlPropertyAssignmentNode assign)
-                    {
-                        var xamlDirectSetters = assign.PossibleSetters.OfType<IXamlDirectSetter>().ToList();
-                        if (xamlDirectSetters.Count != 0)
-                        {
-                            assign.PossibleSetters.Clear();
-                            foreach (var setter in xamlDirectSetters)
-                            {
-                                assign.PossibleSetters.Add(setter);
-                            }
+                ExtractXamlDirectAssignments(manipGrp, xamlDirectAssignmentsNode, standardAssignmentsNode);
 
-                            xamlDirectAssignmentsNode.Children.Add(assign);
-                        }
-                        else
-                        {
-                            standardAssignmentsNode.Children.Add(assign);
-                        }
-                    }
-                    else
-                    {
-                        standardAssignmentsNode.Children.Add(manip);
-                    }
-                }
-                
                 if (xamlDirectAssignmentsNode.Children.Count != 0)
                 {
                     constructedObjNode = new XamlValueWithManipulationNode(constructedObjNode, constructedObjNode, xamlDirectAssignmentsNode);
@@ -90,6 +66,35 @@ namespace WinUIXamlCompiler.Transforms
                 }
             }
             return node;
+
+            static void ExtractXamlDirectAssignments(XamlManipulationGroupNode manipGrp, XamlManipulationGroupNode xamlDirectAssignmentsNode, XamlManipulationGroupNode standardAssignmentsNode)
+            {
+                foreach (var manip in manipGrp.Children)
+                {
+                    if (manip is XamlManipulationGroupNode nestedGrp)
+                    {
+                        ExtractXamlDirectAssignments(nestedGrp, xamlDirectAssignmentsNode, standardAssignmentsNode);
+                    }
+                    else if (manip is XamlPropertyAssignmentNode assign)
+                    {
+                        var xamlDirectSetters = assign.PossibleSetters.OfType<IXamlDirectSetter>().ToList();
+                        if (xamlDirectSetters.Count != 0)
+                        {
+                            assign.PossibleSetters.Clear();
+                            assign.PossibleSetters.AddRange(xamlDirectSetters);
+                            xamlDirectAssignmentsNode.Children.Add(assign);
+                        }
+                        else
+                        {
+                            standardAssignmentsNode.Children.Add(assign);
+                        }
+                    }
+                    else
+                    {
+                        standardAssignmentsNode.Children.Add(manip);
+                    }
+                }
+            }
         }
 
         private static bool TryGetNewObjectNodeForXamlDirect(XamlValueWithManipulationNode valWithManip, out XamlAstNewClrObjectNode newObj)

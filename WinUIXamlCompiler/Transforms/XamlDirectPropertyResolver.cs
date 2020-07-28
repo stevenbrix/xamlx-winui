@@ -20,7 +20,7 @@ namespace WinUIXamlCompiler.Transforms
                     prop.DeclaringType.Namespace == "Microsoft.UI.Xaml.Controls")
                 {
                     IXamlField propertyIndexMaybe = context.GetWinUITypes().XamlPropertyIndex.Fields.FirstOrDefault(f => f.Name == $"{prop.DeclaringType.Name}_{prop.Name}");
-                    prop.Setters.Insert(0, new XamlDirectSetter(context.GetWinUITypes(), context.Configuration.WellKnownTypes.String, prop.Getter.ReturnType, prop.DeclaringType, propertyIndexMaybe));
+                    prop.Setters.Insert(0, new XamlDirectSetter(context.GetWinUITypes(), prop.Getter.ReturnType, prop.DeclaringType, propertyIndexMaybe));
                     foreach (var adder in XamlTransformHelpers.FindPossibleAdders(context, prop.Getter.ReturnType))
                     {
                         if (adder.Parameters.Count == 1)
