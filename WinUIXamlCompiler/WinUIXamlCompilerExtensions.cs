@@ -21,5 +21,21 @@ namespace WinUIXamlCompiler
                 => compiler.Transformers.InsertRange(compiler.Transformers.FindIndex(x => x is T), t);
         }
 
+        public static WellKnownWinUITypes GetWinUITypes(this AstTransformationContext ctx)
+        {
+            if (ctx.TryGetItem<WellKnownWinUITypes>(out var rv))
+                return rv;
+            ctx.SetItem(rv = new WellKnownWinUITypes(ctx.Configuration));
+            return rv;
+        }
+        
+        public static WellKnownWinUITypes GetWinUITypes<TBackendCompiler, TEmitResult>(this XamlEmitContext<TBackendCompiler, TEmitResult> ctx)
+                    where TEmitResult : IXamlEmitResult
+        {
+            if (ctx.TryGetItem<WellKnownWinUITypes>(out var rv))
+                return rv;
+            ctx.SetItem(rv = new WellKnownWinUITypes(ctx.Configuration));
+            return rv;
+        }
     }
 }
