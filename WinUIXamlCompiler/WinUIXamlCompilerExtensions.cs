@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using WinUIXamlCompiler.Transforms;
 using XamlX.Ast;
 using XamlX.Compiler;
 using XamlX.Emit;
 using XamlX.Transform;
+using XamlX.Transform.Transformers;
 
 namespace WinUIXamlCompiler
 {
@@ -19,6 +21,8 @@ namespace WinUIXamlCompiler
 
             void InsertBefore<T>(params IXamlAstTransformer[] t)
                 => compiler.Transformers.InsertRange(compiler.Transformers.FindIndex(x => x is T), t);
+
+            InsertAfter<NewObjectTransformer>(new XamlDirectTransformer());
         }
 
         public static WellKnownWinUITypes GetWinUITypes(this AstTransformationContext ctx)
