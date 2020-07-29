@@ -35,7 +35,7 @@ namespace WinUIXamlCompiler.Emitters.Cpp
             XamlLanguageEmitMappings<CppEmitter, CppNodeEmitResult> emitMappings,
             CppDocument document)
         {
-            return new CppContextDefinition(builder, typeSystem, mappings, emitMappings, document).ContextType;
+            return new CppContextDefinition(builder, typeSystem, mappings, emitMappings, document, Array.Empty<IXamlType>()).ContextType;
         }
 
         public List<Action> CreateCallbacks = new List<Action>();
@@ -47,7 +47,8 @@ namespace WinUIXamlCompiler.Emitters.Cpp
         private CppContextDefinition(IXamlTypeBuilder<CppEmitter> parentBuilder,
             IXamlTypeSystem typeSystem, XamlLanguageTypeMappings mappings,
             XamlLanguageEmitMappings<CppEmitter, CppNodeEmitResult> emitMappings,
-            CppDocument document)
+            CppDocument document,
+            IXamlType[] staticProviderTypes)
         {
             var so = typeSystem.GetType("System.Object");
             var builder = parentBuilder.DefineSubType(so, "Context", true);
@@ -66,9 +67,8 @@ namespace WinUIXamlCompiler.Emitters.Cpp
             if (mappings.InnerServiceProviderFactoryMethod != null)
                 _innerServiceProviderField = builder.DefineField(mappings.ServiceProvider, "_innerSp", false, false);
 
-            var staticProvidersField = builder.DefineField(typeSystem.GetType("System.Object").MakeArrayType(1),
+            var staticProvidersField = builder.DefineField(document.GetCppType($"std::tuple<{string.Join(", ", staticProviderTypes.Select(t => t.FullName.Replace(".", "::")))}>"),
                 "_staticProviders", false, false);
-            
             
             var systemType = typeSystem.GetType("Windows.UI.Xaml.Interop.TypeName");
             var systemUri = typeSystem.GetType("Windows.Foundation.Uri");
@@ -222,66 +222,39 @@ namespace WinUIXamlCompiler.Emitters.Cpp
             var getTypeFromObject = so.Methods.First(m => m.Name == "GetType" && m.Parameters.Count == 0);
             if (ownServices.Count != 0)
             {
-
+                getServiceMethod.Generator
+                    .Emit("if")
+                    .OpenParen();
                 for (var c = 0; c < ownServices.Count; c++)
                 {
+                    if (c != 0)
+                    {
+                        getServiceMethod.Generator.Emit("||");
+                    }
                     getServiceMethod.Generator
-                        .Emit("if")
-                        .OpenParen()
                         .ArgName(0)
                         .Equals()
-                        .TypeInfo(ownServices[c])
-                        .CloseParen()
-                        .Return()
-                        .Emit("this")
-                        .StatementEnd();
+                        .TypeInfo(ownServices[c]);
                 }
+                getServiceMethod.Generator
+                    .CloseParen()
+                    .Return()
+                    .Emit("this")
+                    .StatementEnd();
             }
 
-            var staticProviderIndex = getServiceMethod.Generator.DefineLocal(typeSystem.GetType("System.Int32"));
-            var staticProviderNext = getServiceMethod.Generator.DefineLabel();
-            var staticProviderFailed = getServiceMethod.Generator.DefineLabel();
-            var staticProviderEnd = getServiceMethod.Generator.DefineLabel();
-            var staticProviderElement = getServiceMethod.Generator.DefineLocal(so);
+            var staticProviderLocal = getServiceMethod.Generator.DefineLocal(typeSystem.FindType("System.Object"));
+
             getServiceMethod.Generator
-                //start: if(_staticProviders == null) goto: end
-                .LdThisFld(staticProvidersField)
-                .Brfalse(staticProviderEnd)
-                // var c = 0
-                .Ldc_I4(0)
-                .Stloc(staticProviderIndex)
-                // next:
-                .MarkLabel(staticProviderNext)
-                // if(c >= _staticProviders.Length) goto: end
-                .Ldloc(staticProviderIndex)
-                .LdThisFld(staticProvidersField)
-                .Ldlen()
-                .Bge(staticProviderEnd)
-                // var obj = _staticProviders[c]
-                .LdThisFld(staticProvidersField)
-                .Ldloc(staticProviderIndex)
-                .Ldelem_ref()
-                // dup
-                .Stloc(staticProviderElement)
-                .Ldarg(1)
-                .Ldloc(staticProviderElement)
-                // if(obj.GetType().Equals(arg1)) return obj; else goto failed;
-                .EmitCall(getTypeFromObject)
-                .EmitCall(isAssignableFrom)
-                .Brfalse(staticProviderFailed)
-                .Ldloc(staticProviderElement)
-                .Ret()
-                // failed: 
-                .MarkLabel(staticProviderFailed)
-                // c++
-                .Ldloc(staticProviderIndex)
-                .Ldc_I4(1)
-                .Add()
-                .Stloc(staticProviderIndex)
-                // goto: start
-                .Br(staticProviderNext)
-                // end:
-                .MarkLabel(staticProviderEnd);                
+                .Local(staticProviderLocal)
+                .Assign()
+                .Emit("get_element_by_type_name")
+                .OpenParen()
+                .ThisField(staticProvidersField)
+                .ArgDelmiter()
+                .ArgName(0)
+                .CloseParen()
+                .StatementEnd();             
 
             var noParentProvider = getServiceMethod.Generator.DefineLabel();
             getServiceMethod.Generator

@@ -10,9 +10,14 @@ namespace WinUIXamlCompiler.Emitters.Cpp
         private List<string> Includes { get; } = new List<string>();
         private List<CppClass> Classes { get; } = new List<CppClass>();
 
-        public void Write(string destinationPath)
+        public void WriteToFile(string destinationPath)
         {
             
+        }
+
+        public void AddInclude(string include)
+        {
+            Includes.Add(include);
         }
 
         public IXamlTypeBuilder<CppEmitter> DefineClass(string name)
@@ -21,6 +26,11 @@ namespace WinUIXamlCompiler.Emitters.Cpp
         }
 
         public IXamlType GetCppType(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Emit(string cpp)
         {
             throw new NotImplementedException();
         }

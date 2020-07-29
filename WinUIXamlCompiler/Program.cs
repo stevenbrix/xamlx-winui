@@ -117,17 +117,28 @@ namespace WinUIXamlCompiler
                 xamlLanguage,
                 GetXmlnsNamespacesCpp(typeSystem, xamlLanguage));
 
-            var contextDocument = new CppDocument();
-
-            var contextDef = new TypeDefinition("CompiledWinUIXaml", "XamlIlContext",
-                TypeAttributes.Class, asm.MainModule.TypeSystem.Object);
-            asm.MainModule.Types.Add(contextDef);
-
-            var contextClass = CppContextDefinition.GenerateContextClass(typeSystem.CreateTypeBuilder(contextDef), typeSystem,
-                xamlLanguage, emitConfig);
+            var document = new CppDocument();
+            document.AddInclude("<tuple>");
+            document.AddInclude("<winrt/Windows.UI.Xaml.Interop.h>");
+            EmitCppHelpers(document);
+            var contextClass = CppContextDefinition.GenerateContextClass(document.DefineClass("XamlContext"), typeSystem,
+                xamlLanguage, emitConfig, document);
 
             var compiler = new WinUIXamlCppCompiler(compilerConfig, emitConfig);
-            CompileXaml(xamlFiles, typeSystem, compilerConfig, contextClass, compiler, null /* provide a type builder for C++ */);
+            CompileXaml(xamlFiles, typeSystem, compilerConfig, contextClass, compiler, document.DefineClass("CompiledXaml"));
+        }
+
+        private static void EmitCppHelpers(CppDocument document)
+        {
+            document.Emit(@"
+template<class... T>
+auto get_element_by_type_name(std::tuple<T...> tuple, Windows::UI::Xaml::Interop::TypeName name)
+{
+    winrt::IInspectable i;
+    ((winrt::xaml_typename<T> == name ? i = (winrt::IInspectable)std::get<T>(tuple) : (void)0), ...);
+    return i;
+}
+");
         }
 
         private static XamlXmlnsMappings GetXmlnsNamespacesCpp(CecilTypeSystem typeSystem, XamlLanguageTypeMappings xamlLanguage)
