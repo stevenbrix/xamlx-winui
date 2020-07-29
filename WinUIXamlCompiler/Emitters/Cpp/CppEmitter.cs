@@ -11,8 +11,9 @@ namespace WinUIXamlCompiler.Emitters.Cpp
     class CppEmitter : IHasLocalsPool
     {
         private readonly CppMethod method;
-        private StringBuilder builder = new StringBuilder();
-        private Dictionary<string, int> localCountPerType = new Dictionary<string, int>();
+        private readonly StringBuilder builder = new StringBuilder();
+        private readonly Dictionary<string, int> localCountPerType = new Dictionary<string, int>();
+        private readonly Dictionary<string, CppLabel> labels = new Dictionary<string, CppLabel>();
         public CppEmitter(CppMethod cppMethod)
         {
             LocalsPool  = new XamlLocalsPool(t => DefineLocal(t));
@@ -34,7 +35,18 @@ namespace WinUIXamlCompiler.Emitters.Cpp
                 local = new CppLocal(type, $"{type.Name}_0");
                 localCountPerType[type.Name] = 1;
             }
+            TypeName(type).Emit(" ").Local(local).StatementEnd();
             return local;
+        }
+        
+        public CppLabel DefineLabel(string name)
+        {
+            if (labels.ContainsKey(name))
+            {
+                throw new InvalidOperationException("Cannot specify the same label name multiple times in the same method.");
+            }
+            var label = new CppLabel(name);
+            return label;
         }
 
         public void Write(TextWriter writer)
@@ -75,11 +87,36 @@ namespace WinUIXamlCompiler.Emitters.Cpp
 
         public CppEmitter Local(IXamlLocal local) => Emit(((CppLocal)local).Name);
 
-        public CppEmitter WriteCast(IXamlType type) => Emit(($"({type.FullName})"));
+        public CppEmitter Cast(IXamlType type)
+            => this
+                .OpenParen()
+                .TypeName(type)
+                .CloseParen();
 
-        public CppEmitter WriteEquals() => Emit(" = ");
+        public CppEmitter TypeInfo(IXamlType type)
+            => this
+                .Emit($"winrt::xaml_typename<")
+                .TypeName(type)
+                .Emit(">()");
 
-        public CppEmitter WriteStatementEnd() => Emit(";\n");
+        public CppEmitter Assign() => Emit(" = ");
+        public CppEmitter Equals() => Emit(" == ");
+        public CppEmitter NotEquals() => Emit(" != ");
+
+        public CppEmitter StatementEnd() => Emit(";\n");
+
+        public CppEmitter Return() => Emit("return ");
+        public CppEmitter ThisField(IXamlField field) => Emit(field.Name);
+
+        public CppEmitter MethodName(IXamlMethod method) => Emit(method.Name);
+
+        public CppEmitter TypeName(IXamlType type) => Emit(type.Namespace.Replace(".", "::") + $"::{type.Name}");
+
+        public CppEmitter ArgDelmiter() => Emit(", ");
+
+        public CppEmitter Nullptr() => Emit("nullptr");
+
+        public CppEmitter Throw(string hresult) => Emit($"winrt::throw_hresult({hresult});\n");
     }
 
     class CppLocal : IXamlLocal
@@ -91,6 +128,16 @@ namespace WinUIXamlCompiler.Emitters.Cpp
         }
         public string Name { get; }
         public IXamlType Type { get; }
+    }
+
+    class CppLabel : IXamlLabel
+    {
+        public CppLabel(string name)
+        {
+            Name = name;
+        }
+
+        public string Name { get; }
     }
 
     class CppNodeEmitResult : IXamlEmitResult

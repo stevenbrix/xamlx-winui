@@ -1,5 +1,7 @@
 
+using System;
 using System.Collections.Generic;
+using XamlX.TypeSystem;
 
 namespace WinUIXamlCompiler.Emitters.Cpp
 {
@@ -11,6 +13,16 @@ namespace WinUIXamlCompiler.Emitters.Cpp
         public void Write(string destinationPath)
         {
             
+        }
+
+        public IXamlTypeBuilder<CppEmitter> DefineClass(string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IXamlType GetCppType(string name)
+        {
+            throw new NotImplementedException();
         }
     }
 }

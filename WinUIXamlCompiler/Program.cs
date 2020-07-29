@@ -6,6 +6,7 @@ using System.CommandLine.Invocation;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using WinUIXamlCompiler.Emitters.Cpp;
 using XamlX;
 using XamlX.Ast;
 using XamlX.Compiler;
@@ -110,22 +111,23 @@ namespace WinUIXamlCompiler
             var typeSystem = new CecilTypeSystem(references, null);
             var asm = typeSystem.TargetAssemblyDefinition;
 
-            var (xamlLanguage, emitConfig) = WinUIXamlLanguage.Configure<IXamlILEmitter, XamlILNodeEmitResult>(typeSystem);
+            var (xamlLanguage, emitConfig) = WinUIXamlLanguage.Configure<CppEmitter, CppNodeEmitResult>(typeSystem);
             var compilerConfig = new TransformerConfiguration(typeSystem,
                 typeSystem.TargetAssembly,
                 xamlLanguage,
                 GetXmlnsNamespacesCpp(typeSystem, xamlLanguage));
 
+            var contextDocument = new CppDocument();
 
             var contextDef = new TypeDefinition("CompiledWinUIXaml", "XamlIlContext",
                 TypeAttributes.Class, asm.MainModule.TypeSystem.Object);
             asm.MainModule.Types.Add(contextDef);
 
-            var contextClass = XamlILContextDefinition.GenerateContextClass(typeSystem.CreateTypeBuilder(contextDef), typeSystem,
+            var contextClass = CppContextDefinition.GenerateContextClass(typeSystem.CreateTypeBuilder(contextDef), typeSystem,
                 xamlLanguage, emitConfig);
 
-            var compiler = new WinUIXamlILCompiler(compilerConfig, emitConfig) { EnableIlVerification = true };
-            CompileXaml(xamlFiles, typeSystem, compilerConfig, contextClass, compiler, null /* provider a type builder for C++ */);
+            var compiler = new WinUIXamlCppCompiler(compilerConfig, emitConfig);
+            CompileXaml(xamlFiles, typeSystem, compilerConfig, contextClass, compiler, null /* provide a type builder for C++ */);
         }
 
         private static XamlXmlnsMappings GetXmlnsNamespacesCpp(CecilTypeSystem typeSystem, XamlLanguageTypeMappings xamlLanguage)
