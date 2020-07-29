@@ -26,5 +26,10 @@ namespace SampleXamlLibrary
         }
 
         private void InitializeComponent(){}
+
+        private void Button_Click(object sender, RoutedEventArgs args)
+        {
+
+        }
     }
 }
