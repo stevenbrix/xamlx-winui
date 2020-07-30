@@ -73,6 +73,18 @@ Assigned to: Jeremy
 - Copying Avalonia compiler
 - Adding WinUI specific language features
 
+#### Limitiations and Workarounds
+
+**Parsing Windows.UI.Color**
+
+XamlX uses TypeConverters, or looks for a static `Parse` method to convert types from string. Since WinRT doesn't support type converters,
+and we can't have methods on structs, you can't do something like this:
+`<SolidColorBrush x:Key="RedBrush" Color="Red"/>`
+
+Workaround is to use `x:Static` and do this instead:
+
+`<SolidColorBrush x:Key="RedBrush" Color="{x:Static Colors.Red}"/>`
+
 ## License
 
 This project is licensed with the [MIT license](LICENSE).
