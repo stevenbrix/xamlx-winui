@@ -183,7 +183,6 @@ namespace WinUIXamlCompiler.Emitters.Cpp
 
             if (_innerServiceProviderField != null)
             {
-                var next = getServiceMethod.Generator.DefineLabel("noInner");
                 var innerResult = getServiceMethod.Generator.DefineLocal(so);
                 getServiceMethod.Generator
                     .Emit("if")
@@ -243,7 +242,7 @@ namespace WinUIXamlCompiler.Emitters.Cpp
                     .StatementEnd();
             }
 
-            var staticProviderLocal = getServiceMethod.Generator.DefineLocal(typeSystem.FindType("System.Object"));
+            var staticProviderLocal = getServiceMethod.Generator.DefineLocal(so);
 
             getServiceMethod.Generator
                 .Local(staticProviderLocal)
@@ -256,17 +255,21 @@ namespace WinUIXamlCompiler.Emitters.Cpp
                 .CloseParen()
                 .StatementEnd();             
 
-            var noParentProvider = getServiceMethod.Generator.DefineLabel();
             getServiceMethod.Generator
-                .LdThisFld(_parentServiceProviderField)
-                .Brfalse(noParentProvider)
-                .LdThisFld(_parentServiceProviderField)
-                .Ldarg(1)
-                .EmitCall(getServiceInterfaceMethod)
-                .Emit(OpCodes.Ret)
-                .MarkLabel(noParentProvider)
-                .Ldnull()
-                .Ret();
+                .Emit("if")
+                .OpenParen()
+                .ThisField(_parentServiceProviderField)
+                .NotEquals()
+                .Nullptr()
+                .CloseParen()
+                .Return()
+                .ThisField(_innerServiceProviderField)
+                .Emit(".")
+                .MethodName(getServiceInterfaceMethod)
+                .ArgName(0)
+                .CloseParen()
+                .StatementEnd()
+                .Return().Nullptr().StatementEnd();
 
             var ctor = builder.DefineConstructor(false, 
                 mappings.ServiceProvider,
