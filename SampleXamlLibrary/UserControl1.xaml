@@ -9,7 +9,10 @@
     <UserControl.Resources>
         <SolidColorBrush x:Key="RedBrush" Color="{x:Static Colors.Red}"/>
     </UserControl.Resources>
-    <Grid>
-        <TextBlock Text="Hello world!" Foreground="{StaticResource ResourceKey=RedBrush}" />
-    </Grid>
+    <ContentControl>
+        <Grid>
+            <TextBlock Text="Hello world!" Foreground="{StaticResource ResourceKey=RedBrush}"/>
+            <Button Content="Click me!" Click="Button_Click" />
+        </Grid>
+    </ContentControl>
 </UserControl>
