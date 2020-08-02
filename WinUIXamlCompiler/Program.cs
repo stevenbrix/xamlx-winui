@@ -1,4 +1,5 @@
 ﻿using Mono.Cecil;
+using Mono.Cecil.Cil;
 using System;
 using System.Collections.Generic;
 using System.CommandLine;
@@ -96,7 +97,7 @@ namespace WinUIXamlCompiler
             asm.MainModule.Types.Add(typeDef);
             var builder = typeSystem.CreateTypeBuilder(typeDef);
 
-            CompileXaml(xamlFiles, typeSystem, compilerConfig, contextClass, compiler, builder);
+            CompileXaml(xamlFiles, typeSystem, compilerConfig, contextClass, compiler, builder, InsertCallToPopulateMethod);
 
             Directory.CreateDirectory(Path.GetDirectoryName(outputAssembly));
 
@@ -105,6 +106,22 @@ namespace WinUIXamlCompiler
                 WriteSymbols = asm.MainModule.HasSymbols
             });
         }
+
+        private static void InsertCallToPopulateMethod(CecilTypeSystem typeSystem, IXamlType classType, IXamlMethod populateMethod)
+        {
+            var classTypeDefinition = typeSystem.GetTypeReference(classType).Resolve();
+            var initializeComponentMethod = classTypeDefinition.Methods.FirstOrDefault(m => m.Name == "InitializeComponent" && m.Parameters.Count == 0);
+            if (initializeComponentMethod is null)
+            {
+                throw new InvalidOperationException($"Unable to find an InitializeComponent method on {classType.GetFqn()}");
+            }
+            initializeComponentMethod.Body.Instructions.Clear();
+            initializeComponentMethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldnull));
+            initializeComponentMethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ldarg_0));
+            initializeComponentMethod.Body.Instructions.Add(Instruction.Create(OpCodes.Call, typeSystem.GetMethodReference(populateMethod)));
+            initializeComponentMethod.Body.Instructions.Add(Instruction.Create(OpCodes.Ret));
+        }
+
         private static void CompileCpp(string[] xamlFiles, string[] references, string outputFolder)
         {
             var typeSystem = new CecilTypeSystem(references, null);
@@ -125,7 +142,7 @@ namespace WinUIXamlCompiler
                 xamlLanguage, emitConfig);
 
             var compiler = new WinUIXamlILCompiler(compilerConfig, emitConfig) { EnableIlVerification = true };
-            CompileXaml(xamlFiles, typeSystem, compilerConfig, contextClass, compiler, null /* provider a type builder for C++ */);
+            CompileXaml(xamlFiles, typeSystem, compilerConfig, contextClass, compiler, null /* provider a type builder for C++ */, null);
         }
 
         private static XamlXmlnsMappings GetXmlnsNamespacesCpp(CecilTypeSystem typeSystem, XamlLanguageTypeMappings xamlLanguage)
@@ -170,7 +187,7 @@ namespace WinUIXamlCompiler
             return mappings;
         }
 
-        private static void CompileXaml<TBackendEmitter, TEmitResult>(string[] xamlFiles, CecilTypeSystem typeSystem, TransformerConfiguration compilerConfig, IXamlType contextClass, XamlImperativeCompiler<TBackendEmitter, TEmitResult> compiler, IXamlTypeBuilder<TBackendEmitter> builder)
+        private static void CompileXaml<TBackendEmitter, TEmitResult>(string[] xamlFiles, CecilTypeSystem typeSystem, TransformerConfiguration compilerConfig, IXamlType contextClass, XamlImperativeCompiler<TBackendEmitter, TEmitResult> compiler, IXamlTypeBuilder<TBackendEmitter> builder, Action<CecilTypeSystem, IXamlType, IXamlMethod> populateMethodHookCallback)
             where TEmitResult : IXamlEmitResult
         {
             foreach (var xamlFile in xamlFiles)
@@ -203,18 +220,22 @@ namespace WinUIXamlCompiler
                 var populateName = classType == null ? "Populate_" + Path.GetFileNameWithoutExtension(xamlFile) : "_XamlIlPopulate";
                 var buildName = classType == null ? "Build_" + Path.GetFileNameWithoutExtension(xamlFile) : null;
 
-                var classTypeDefinition =
-                    classType == null ? null : typeSystem.GetTypeReference(classType).Resolve();
+                var populateMethod  = compiler.DefinePopulateMethod(builder, parsed, populateName,
+                        false);
 
                 compiler.Compile(parsed, contextClass,
-                    compiler.DefinePopulateMethod(builder, parsed, populateName,
-                        false),
+                    populateMethod,
                     buildName == null ? null : compiler.DefineBuildMethod(builder, parsed, buildName, true),
                     null,
                     (closureName, closureBaseType) =>
                         builder.DefineSubType(closureBaseType, closureName, false),
                     xamlFile, res
                 );
+                
+                if (classType != null)
+                {
+                    populateMethodHookCallback?.Invoke(typeSystem, classType, populateMethod);
+                }
             }
         }
 
