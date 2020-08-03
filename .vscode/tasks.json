@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/WinUIXamlCompiler/WinUIXamlCompiler.csproj",
+                "${workspaceFolder}/xamlx-winui.sln",
                 "/property:GenerateFullPaths=true",
                 "/consoleloggerparameters:NoSummary"
             ],
