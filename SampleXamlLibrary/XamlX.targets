@@ -1,0 +1,42 @@
+﻿<Project>
+  <PropertyGroup>
+    <XamlXTargetPath>compiled/$(AssemblyName).dll</XamlXTargetPath>
+  </PropertyGroup>
+  
+  <Target Name="CreateRspFileForCompiler" BeforeTargets="CopyFilesToOutputDirectory" Returns="$(XamlXRspFile)">
+    <PropertyGroup>
+      <XamlXRspFile>$(OutputPath)/$(AssemblyName).xaml.rsp</XamlXRspFile>
+    </PropertyGroup>
+    <ItemGroup>
+      <XamlFile Include="**/*.xaml" />
+      <RspLine Include="@(XamlFile->'--xaml:%(FullPath)')" />
+      <RspLine Include="@(ReferencePath->'--reference:%(Identity)')" />
+      <RspLine Include="il" />
+      <RspLine Include="-i:$([System.IO.Path]::GetFullPath($(OutputPath)$(AssemblyName).dll))" />
+      <RspLine Include="-o:$([System.IO.Path]::GetFullPath($(OutputPath)$(XamlXTargetPath)))" />
+    </ItemGroup>
+    <WriteLinesToFile Lines="@(RspLine)" File="$(XamlXRspFile)" Overwrite="true" />
+  </Target>
+
+  <Target Name="MarkupCompile" AfterTargets="CopyFilesToOutputDirectory">
+    <PropertyGroup>
+      <XamlXCompilerExe>..\WinUIXamlCompiler\bin\Debug\netcoreapp3.1\WinUIXamlCompiler.exe</XamlXCompilerExe>
+      <XamlXCompilerCommand>$(XamlXCompilerExe) @$(XamlXRspFile)</XamlXCompilerCommand>
+    </PropertyGroup>
+    <Exec Command="$(XamlXCompilerCommand)" />
+  </Target>
+
+  <!-- Replace the TargetPath of this project so that ProjectRefrences pick up the XamlX re-compiled assembly -->
+  <Target Name="XamlXReplaceTargetPath" Returns="$(TargetPath)">
+    <PropertyGroup>
+      <TargetPath>$(TargetDir)$(XamlXTargetPath)</TargetPath>
+    </PropertyGroup>
+  </Target>
+
+  <PropertyGroup>
+    <GetTargetPathDependsOn>
+      $(GetTargetPathDependsOn);
+      XamlXReplaceTargetPath
+    </GetTargetPathDependsOn>
+  </PropertyGroup>
+</Project>

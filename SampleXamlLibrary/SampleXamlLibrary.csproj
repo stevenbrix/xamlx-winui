@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
@@ -6,16 +6,5 @@
     <PackageReference Include="Microsoft.WinUI" Version="3.0.0-development.200729.3-XamlX" ExcludeAssets="build" />
   </ItemGroup>
 
-  <Target Name="CreateRspFileForCompiler" BeforeTargets="CopyFilesToOutputDirectory">
-    <ItemGroup>
-      <XamlFile Include="**/*.xaml" />
-      <RspLine Include="@(XamlFile->'--xaml:%(FullPath)')" />
-      <RspLine Include="@(ReferencePath->'--reference:%(Identity)')" />
-      <RspLine Include="il" />
-      <RspLine Include="-i:$([System.IO.Path]::GetFullPath($(OutputPath)$(AssemblyName).dll))" />
-      <RspLine Include="-o:$([System.IO.Path]::GetFullPath($(OutputPath)compiled/$(AssemblyName).dll))" />
-    </ItemGroup>
-    <WriteLinesToFile Lines="@(RspLine)" File="$(OutputPath)/$(AssemblyName).xaml.rsp" Overwrite="true" />
-  </Target>
-  
+  <Import Project="XamlX.targets" />
 </Project>
