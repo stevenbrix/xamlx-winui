@@ -51,7 +51,7 @@ namespace WinUIXamlCompiler.Emitters.IL
                 IXamlType xamlDirectType = context.GetWinUITypes().XamlDirect;
                 codeGen
                     .EmitCall(xamlDirectType.GetMethod(new FindMethodMethodSignature("GetDefault", xamlDirectType) { IsStatic = true }))
-                    .Ldsfld(objNode.TypeIndex)
+                    .Ldc_I4((int)objNode.TypeIndex.GetLiteralValue())
                     .EmitCall(xamlDirectType.GetMethod(new FindMethodMethodSignature("CreateInstance", context.GetWinUITypes().IXamlDirectObject, context.GetWinUITypes().XamlTypeIndex)));
                 return XamlILNodeEmitResult.Type(0, context.GetWinUITypes().IXamlDirectObject);
             }
@@ -83,7 +83,7 @@ namespace WinUIXamlCompiler.Emitters.IL
                         .Stloc(objLocal.Local)
                         .EmitCall(xamlDirectType.GetMethod(new FindMethodMethodSignature("GetDefault", xamlDirectType) { IsStatic = true }))
                         .Ldloc(objLocal.Local)
-                        .Ldsfld(xdirect.PropertyIndex)
+                        .Ldc_I4((int)xdirect.PropertyIndex.GetLiteralValue())
                         .Ldloc(valLocal.Local)
                         .EmitCall(setterMethod);
                 }
@@ -124,7 +124,7 @@ namespace WinUIXamlCompiler.Emitters.IL
 
                     emitter
                         .Ldloc(objLocal.Local)
-                        .Ldsfld(xdirect.PropertyIndex)
+                        .Ldc_I4((int)xdirect.PropertyIndex.GetLiteralValue())
                         .EmitCall(getCollectionMethod);
 
                     if (paramType != xdirect.WinUITypes.IXamlDirectObject)
@@ -172,7 +172,7 @@ namespace WinUIXamlCompiler.Emitters.IL
                         .Stloc(objLocal.Local)
                         .EmitCall(xamlDirectType.GetMethod(new FindMethodMethodSignature("GetDefault", xamlDirectType) { IsStatic = true }))
                         .Ldloc(objLocal.Local)
-                        .Ldsfld(xdirect.EventIndex)
+                        .Ldc_I4((int)xdirect.EventIndex.GetLiteralValue())
                         .Ldloc(valLocal.Local)
                         .EmitCall(setterMethod);
                 }
