@@ -19,18 +19,6 @@ namespace WinUIXamlCompiler.Transforms
             if (node is XamlPropertyAssignmentNode assign &&
                 assign.PossibleSetters[0] is IXamlDirectSetter)
             {
-                foreach (var setter in assign.PossibleSetters)
-                {
-                    IXamlDirectSetter directSetter = (IXamlDirectSetter)setter;
-                    
-                    if (!(directSetter is XamlDirectEventSetter) &&
-                        !directSetter.Parameters[0].IsValueType &&
-                        directSetter.Parameters[0] != context.Configuration.WellKnownTypes.String)
-                    {
-                        directSetter.ChangeEmitSetterType(context.GetWinUITypes().IXamlDirectObject);
-                    }
-                }
-
                 for (int i = 0; i < assign.Values.Count; i++)
                 {
                     if (assign.Values[i] is XamlObjectFromDirectObjectNode objFromDirect)
