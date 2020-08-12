@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.VCRTForwarders.140" Version="1.0.6" />
-    <PackageReference Include="Microsoft.WinUI" Version="3.0.0-development.200812.2-CI" />
+    <PackageReference Include="Microsoft.WinUI" Version="3.0.0-development.200812.2-XamlX" />
     <Manifest Include="$(ApplicationManifest)" />
   </ItemGroup>
 

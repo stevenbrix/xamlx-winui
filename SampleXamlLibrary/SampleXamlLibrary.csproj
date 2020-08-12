@@ -1,9 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <IsWinUIAlpha>true</IsWinUIAlpha>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.WinUI" Version="3.0.0-development.200812.2-CI" ExcludeAssets="build" />
+    <PackageReference Include="Microsoft.WinUI" Version="3.0.0-development.200812.2-XamlX" ExcludeAssets="build" />
   </ItemGroup>
 
   <Import Project="XamlX.targets" />
