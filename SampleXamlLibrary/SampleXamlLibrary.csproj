@@ -3,7 +3,7 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.WinUI" Version="3.0.0-development.200729.3-XamlX" ExcludeAssets="build" />
+    <PackageReference Include="Microsoft.WinUI" Version="3.0.0-development.200812.2-CI" ExcludeAssets="build" />
   </ItemGroup>
 
   <Import Project="XamlX.targets" />

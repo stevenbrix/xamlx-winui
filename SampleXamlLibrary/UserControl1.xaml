@@ -10,9 +10,11 @@
         <SolidColorBrush x:Key="RedBrush" Color="{x:Static Colors.Red}"/>
     </UserControl.Resources>
     <ContentControl>
-        <Grid>
-            <TextBlock Text="Hello world!" Foreground="{StaticResource ResourceKey=RedBrush}"/>
-            <Button Content="Click me!" Click="Button_Click" />
-        </Grid>
+        <RelativePanel>
+            <TextBlock Text="Hello world!" Foreground="{StaticResource RedBrush}"
+                       RelativePanel.AlignHorizontalCenterWithPanel="true"
+                       RelativePanel.AlignVerticalCenterWithPanel="true"/>
+            <Button Content="Click me!" Click="Button_Click" RelativePanel.Below="textblock"/>
+        </RelativePanel>
     </ContentControl>
 </UserControl>
