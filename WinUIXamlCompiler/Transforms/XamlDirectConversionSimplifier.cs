@@ -29,11 +29,20 @@ namespace WinUIXamlCompiler.Transforms
                     // that the emitted code expects.
                     // Here we change the setter type from a DependencyObject-derived type to IXamlDirectObject
                     // so that the emitters know that the actual expected parameter type is IXamlDirectObject.
+                    // Additionally, if we are setting a property that is type object with a DependencyObject-derived object,
+                    // we need to use the IXamlDirectObject setter.
                     if (!(directSetter is XamlDirectEventSetter))
                     {
                         if (context.GetWinUITypes().DependencyObject.IsAssignableFrom(directSetter.Parameters[0]))
                         {
                             directSetter.ChangeEmitSetterType(context.GetWinUITypes().IXamlDirectObject);
+                        }
+                        else if (directSetter.Parameters[0] == context.Configuration.WellKnownTypes.Object)
+                        {
+                            if (context.GetWinUITypes().DependencyObject.IsAssignableFrom(assign.Values[0].Type.GetClrType()))
+                            {
+                                directSetter.ChangeEmitSetterType(context.GetWinUITypes().IXamlDirectObject);
+                            }
                         }
                     }
                 }
