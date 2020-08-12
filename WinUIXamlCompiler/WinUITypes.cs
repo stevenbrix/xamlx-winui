@@ -27,6 +27,7 @@ namespace WinUIXamlCompiler
             XamlEventIndex = cfg.TypeSystem.FindType("Microsoft.UI.Xaml.Core.Direct.XamlEventIndex");
             BindingBase = cfg.TypeSystem.FindType("Microsoft.UI.Xaml.Data.BindingBase");
             DependencyProperty = cfg.TypeSystem.FindType("Microsoft.UI.Xaml.DependencyProperty");
+            DependencyObject = cfg.TypeSystem.FindType("Microsoft.UI.Xaml.DependencyObject");
         }
     }
 }
