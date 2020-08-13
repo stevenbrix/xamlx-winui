@@ -11,7 +11,7 @@
     </UserControl.Resources>
     <ContentControl>
         <RelativePanel>
-            <TextBlock Text="Hello world!" Foreground="{StaticResource RedBrush}"
+            <TextBlock Text="Hello world!" 
                        RelativePanel.AlignHorizontalCenterWithPanel="true"
                        RelativePanel.AlignVerticalCenterWithPanel="true"/>
             <Button Content="Click me!" Click="Button_Click" RelativePanel.Below="textblock"/>
