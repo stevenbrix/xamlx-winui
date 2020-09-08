@@ -132,12 +132,69 @@ namespace WinUIXamlCompiler
         {
             document.Emit(@"
 template<class... T>
-auto get_element_by_type_name(std::tuple<T...> tuple, Windows::UI::Xaml::Interop::TypeName name)
+auto get_element_by_type_name(std::tuple<T...> tuple, ::winrt::Windows::UI::Xaml::Interop::TypeName name)
 {
-    winrt::IInspectable i;
-    ((winrt::xaml_typename<T> == name ? i = (winrt::IInspectable)std::get<T>(tuple) : (void)0), ...);
+    ::winrt::IInspectable i;
+    ((::winrt::xaml_typename<T> == name ? i = (::winrt::IInspectable)std::get<T>(tuple) : (void)0), ...);
     return i;
 }
+
+template<class TContext>
+class ParentStackIterable : ::winrt::implements<ParentStackIterable, ::winrt::Windows::Foundation::Collections::IIterable<::winrt::IInspectable>>
+{
+    friend class ParentStackIterator;
+    TContext _rootContext;
+    TContext _parentContext;
+
+    class ParentStackIterator : ::winrt::implements<ParentStackIterator, ::winrt::Windows::Foundation::Collections::IIterator<::winrt::IInspectable>>
+    {
+        TContext _parentContext;
+        bool _iteratingParent;
+        ::winrt::Windows::Foundation::Collections::IIterator<::winrt::IInspectable> _currentStackIterator;
+    public:
+        ParentStackIterator(const ParentStackIterable& iterable)
+            : _parentContext(iterable._parentContext),
+              _iteratingParent(false)
+            // TODO: initialize current stack iterator.
+        {
+            _parentContext = iterable._parentContext;
+        }
+
+        bool HasCurrent()
+        {
+            return _currentStackIterator != nullptr && _currentStackIterator.HasCurrent();
+        }
+
+        ::winrt::IInspectable Current()
+        {
+            return _currentStackIterator.Current();
+        }
+
+        bool MoveNext()
+        {
+            if (!_currentStackIterator.MoveNext())
+            {
+                if (_iteratingParent)
+                {
+                    return false;
+                }
+                _currentStackIterator =((IParentStackProvider)_parentContext.GetService(::winrt::xaml_typename<IParentStackProvider>)).Parents();
+                _iteratingParent = true;
+                if (!_currentStackIterator.HasCurrent())
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+    };
+public:
+    ::winrt::Windows::Foundation::Collections::IIterator<::winrt::IInspectable> First()
+    {
+        // TODO: Implement
+        return nullptr;
+    }
+};
 ");
         }
 
